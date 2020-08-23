@@ -12,7 +12,11 @@ setup(
     version = "0.0.2",
     packages = find_packages(),
 
-    install_requires = ['requests'],
+    install_requires = [
+        'configparser;python_version<"3.2"',
+        'future',
+        'requests',
+    ],
 
     author = "Dave Arter",
     author_email = "pypi@davea.me",

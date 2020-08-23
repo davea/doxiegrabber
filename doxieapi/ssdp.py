@@ -12,11 +12,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import absolute_import
+import install_aliases  # noqa # pylint: disable=unused-import
+
+from http.client import HTTPResponse
 import socket
-try:
-    from http.client import HTTPResponse
-except ImportError:
-    from httplib import HTTPResponse
 
 class SSDPResponse(object):
     def __init__(self, sock):

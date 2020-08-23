@@ -1,15 +1,12 @@
+from __future__ import with_statement
+from __future__ import absolute_import
+import install_aliases  # noqa # pylint: disable=unused-import
+
 import os
 import time
 import json
-try:
-    from configparser import ConfigParser
-except ImportError:
-    # We're on Python 2
-    from ConfigParser import ConfigParser
-try:
-    from urllib.parse import urlparse, urlunparse, urljoin
-except ImportError:
-    from urlparse import urlparse, urlunparse, urljoin
+from configparser import ConfigParser
+from urllib.parse import urlparse, urlunparse, urljoin
 
 import requests
 
@@ -20,7 +17,7 @@ DOXIE_SSDP_SERVICE = "urn:schemas-getdoxie-com:device:Scanner:1"
 # Scans are downloaded in chunks of this many bytes:
 DOWNLOAD_CHUNK_SIZE = 1024*8
 
-class DoxieScanner:
+class DoxieScanner(object):
     url = None
     username = "doxie" # This is always the same according to API docs
     password = None
