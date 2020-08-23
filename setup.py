@@ -1,5 +1,8 @@
-from setuptools import setup, find_packages
+#!/usr/bin/env python
+
 from distutils import log
+from setuptools import find_packages
+from setuptools import setup
 
 try:
     import pypandoc
@@ -8,16 +11,14 @@ except ImportError:
     log.warn("warning: Couldn't generate README.rst - is pypandoc installed?")
 
 setup(
-    name = "doxieapi",
-    version = "0.0.2",
-    packages = find_packages(),
-
-    install_requires = ['requests'],
-
-    author = "Dave Arter",
-    author_email = "pypi@davea.me",
-    description = "Library for downloading scans from a Doxie Go Wi-Fi document scanner",
-    license = "LICENSE.txt",
-    keywords = "doxie document scanner",
-    url = "https://github.com/davea/doxieapi/",
+    name="doxieapi",
+    version="0.0.2",
+    packages=find_packages(),
+    install_requires=['requests'],
+    author="Dave Arter",
+    author_email="pypi@davea.me",
+    description="Library for downloading scans from a Doxie Go Wi-Fi document scanner",
+    license="LICENSE.txt",
+    keywords="doxie document scanner",
+    url="https://github.com/davea/doxieapi/",
 )
