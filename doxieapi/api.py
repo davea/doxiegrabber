@@ -200,9 +200,8 @@ class DoxieScanner(object):
         url = self._api_url(path)
         response = self._get_url(url, stream=True)
         output_path = os.path.join(output_dir, os.path.basename(path))
-        if os.path.isfile(output_path):
-            raise FileExistsError(output_path)
-        with open(output_path, 'wb') as f:
+        fd = os.open(output_path, os.O_CREAT | os.O_EXCL)
+        with os.fdopen(fd, 'wb') as f:
             for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
         return output_path
