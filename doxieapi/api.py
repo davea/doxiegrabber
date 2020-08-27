@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""
+doxieapi.api
+~~~~~~~~~~~~
+
+An API client implementation for the Doxie Scanner API.
+"""
+
 import os
 import time
 import json
@@ -20,9 +29,15 @@ DOXIE_SSDP_SERVICE = "urn:schemas-getdoxie-com:device:Scanner:1"
 # Scans are downloaded in chunks of this many bytes:
 DOWNLOAD_CHUNK_SIZE = 1024*8
 
+
 class DoxieScanner:
+    """A client for the Doxie Scanner."""
+
+    # pylint: disable=too-many-instance-attributes
+    # Nine is reasonable in this case.
+
     url = None
-    username = "doxie" # This is always the same according to API docs
+    username = "doxie"  # This is always the same according to API docs
     password = None
 
     # These attributes will be populated by _load_hello_attributes
@@ -43,21 +58,25 @@ class DoxieScanner:
 
     def __str__(self):
         """
-        >>> doxie = DoxieScanner("http://192.168.100.1:8080/", load_attributes=False)
+        >>> doxie = DoxieScanner("http://192.168.100.1:8080/",
+        ...                      load_attributes=False)
         >>> doxie.name = "Doxie_00AAFF"
         >>> doxie.model = "DX250"
         >>> str(doxie)
         'Doxie model DX250 (Doxie_00AAFF) at http://192.168.100.1:8080/'
         """
-        return "Doxie model {} ({}) at {}".format(self.model, self.name, self.url)
+        return "Doxie model {} ({}) at {}".format(
+            self.model, self.name, self.url)
 
     def __repr__(self):
         """
-        >>> doxie = DoxieScanner("http://192.168.100.1:8080/", load_attributes=False)
+        >>> doxie = DoxieScanner("http://192.168.100.1:8080/",
+        ...                      load_attributes=False)
         >>> doxie.name = "Doxie_00AAFF"
         >>> doxie.model = "DX250"
         >>> str(doxie)
-        '<DoxieScanner: Doxie model DX250 (Doxie_00AAFF) at http://192.168.100.1:8080/>'
+        '<DoxieScanner: Doxie model DX250 (Doxie_00AAFF) at
+        http://192.168.100.1:8080/>'
         """
         return "<DoxieScanner: {}>".format(str(self))
 
@@ -76,9 +95,9 @@ class DoxieScanner:
 
     def _api_url(self, path):
         """
-        >>> DoxieScanner("http://192.168.100.1:8080/", load_attributes=False)._api_url("/scans.json")
+        >>> doxie._api_url("/scans.json")
         'http://192.168.100.1:8080/scans.json'
-        >>> DoxieScanner("http://192.168.100.1:8080/", load_attributes=False)._api_url("/networks/available.json")
+        >>> doxie._api_url("/networks/available.json")
         'http://192.168.100.1:8080/networks/available.json'
         """
         return urljoin(self.url, path)
@@ -108,10 +127,13 @@ class DoxieScanner:
 
     def _get_auth(self):
         """
-        Returns a (username, password) tuple if self.password is set, otherwise None.
+        Returns a (username, password) tuple if self.password is set, otherwise
+        None.
         Suitable for passing to requests' 'auth' kwarg.
         """
-        return (self.username, self.password) if self.password is not None else None
+        return (
+            self.username, self.password
+        ) if self.password is not None else None
 
     def _load_hello_attributes(self):
         """
@@ -128,7 +150,7 @@ class DoxieScanner:
         self.firmware_wifi = attributes['firmwareWiFi']
         if self.mode == "Client":
             self.network = attributes['network']
-        if attributes['hasPassword'] == True:
+        if attributes['hasPassword']:
             self._load_password()
 
     def _load_password(self):
@@ -136,19 +158,24 @@ class DoxieScanner:
         Load the password for this Doxie's MAC address from ~/.doxieapi.ini,
         or another path specified by the DOXIEAPI_CONFIG_PATH env variable
         """
-        config_path = os.path.expanduser(os.environ.get("DOXIEAPI_CONFIG_PATH", "~/.doxieapi.ini"))
+        config_path = os.path.expanduser(
+            os.environ.get("DOXIEAPI_CONFIG_PATH", "~/.doxieapi.ini")
+        )
         config = ConfigParser()
         config.read(config_path)
         try:
             self.password = config[self.mac]['password']
         except KeyError:
-            raise Exception("Couldn't find password for Doxie {} in {}".format(self.mac, config_path))
+            raise Exception(
+                "Couldn't find password for Doxie {} in {}".format(
+                    self.mac, config_path)
+            )
 
     @property
     def firmware(self):
         """
-        Fetches and caches the 'firmware' string from the 'hello_extra' API call.
-        This call is expensive and the value isn't going to change, so
+        Fetches and caches the 'firmware' string from the 'hello_extra' API
+        call. This call is expensive and the value isn't going to change, so
         we're fine to cache it for the lifetime of this DoxieScanner instance.
         """
         if self._firmware is None:
@@ -205,9 +232,9 @@ class DoxieScanner:
         output_path = os.path.join(output_dir, os.path.basename(path))
         if os.path.isfile(output_path):
             raise FileExistsError(output_path)
-        with open(output_path, 'wb') as f:
+        with open(output_path, 'wb') as output:
             for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
-                f.write(chunk)
+                output.write(chunk)
         return output_path
 
     def download_scans(self, output_dir):
@@ -225,12 +252,13 @@ class DoxieScanner:
         """
         Deletes a scan from the Doxie.
         This method may be slow; from the API docs:
-           Deleting takes several seconds because a lock on the internal storage
-           must be obtained and released. Deleting may fail if the lock cannot
-           be obtained (e.g., the scanner is busy), so consider retrying on
-           failure conditions.
+           Deleting takes several seconds because a lock on the internal
+           storage must be obtained and released. Deleting may fail if the lock
+           cannot be obtained (e.g., the scanner is busy), so consider retrying
+           on failure conditions.
         This method will attempt the deletion multiple times with a timeout
-        between attempts - controlled by the retries and timeout (seconds) params.
+        between attempts - controlled by the retries and timeout (seconds)
+        params.
         Returns a boolean indicating whether the deletion was successful.
         """
         if not path.startswith("/scans"):
@@ -249,12 +277,13 @@ class DoxieScanner:
         """
         Deletes multiple scans from the Doxie.
         This method may be slow; from the API docs:
-           Deleting takes several seconds because a lock on the internal storage
-           must be obtained and released. Deleting may fail if the lock cannot
-           be obtained (e.g., the scanner is busy), so consider retrying on
-           failure conditions.
+           Deleting takes several seconds because a lock on the internal
+           storage must be obtained and released. Deleting may fail if the lock
+           cannot be obtained (e.g., the scanner is busy), so consider retrying
+           on failure conditions.
         This method will attempt the deletion multiple times with a timeout
-        between attempts - controlled by the retries and timeout (seconds) params.
+        between attempts - controlled by the retries and timeout (seconds)
+        params.
         Returns a boolean indicating whether the deletion was successful.
         The deletion is considered successful by the Doxie if at least one scan
         was deleted, it seems.
